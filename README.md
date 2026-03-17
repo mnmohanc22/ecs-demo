@@ -123,3 +123,15 @@ docker push <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/react-flask-frontend:la
 
 2. Create ECS task definition with both containers
 3. Create ECS service in your cluster
+
+
+docker run -e BACKEND_URL=http://your-api.com -p 80:80 react-flask-frontend
+
+# ECS Task Definition — no rebuild needed
+environment:
+  - name: BACKEND_URL
+    value: http://backend-alb-123.us-east-1.elb.amazonaws.com
+
+# Flask backend — allow ALB frontend origin
+  - name: ALLOWED_ORIGINS
+    value: http://frontend-alb-456.us-east-1.elb.amazonaws.com

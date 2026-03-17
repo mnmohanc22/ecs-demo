@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 
-const API = "/api"
+//const API = "/api"
+const API = (window.ENV?.API_URL || "http://localhost:5000") + "/api"
 
 export default function App() {
   const [tasks, setTasks]     = useState([])
