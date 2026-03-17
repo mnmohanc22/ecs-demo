@@ -1,27 +1,37 @@
-# ── Stage 1: Build React app ──────────────────────────
-FROM node:18-alpine AS builder
+FROM node:18-alpine
 
 WORKDIR /app
 
+# Install Nginx and OpenSSL
+RUN apk add --no-cache nginx openssl
+
+# Install dependencies
 COPY package.json package-lock.json* ./
 RUN npm install
 
+# Copy source
 COPY index.html .
 COPY vite.config.js .
 COPY src/ ./src/
+
+# Build React app
 RUN npm run build
 
-# ── Stage 2: Serve with Nginx ──────────────────────────
-FROM nginx:alpine
+# Copy built assets to Nginx html directory
+RUN cp -r /app/dist/* /usr/share/nginx/html/
 
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Generate self-signed SSL certificate
+RUN mkdir -p /etc/nginx/ssl && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+      -keyout /etc/nginx/ssl/nginx.key \
+      -out    /etc/nginx/ssl/nginx.crt \
+      -subj "/C=US/ST=Georgia/L=Atlanta/O=MyApp/CN=localhost"
 
-# Copy entrypoint that writes runtime config
-COPY entrypoint.sh /entrypoint.sh
+# Copy configs
+COPY nginx.conf      /etc/nginx/conf.d/default.conf
+COPY entrypoint.sh   /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 80
+EXPOSE 80 443
 
-# Use entrypoint instead of default nginx CMD
 ENTRYPOINT ["/entrypoint.sh"]

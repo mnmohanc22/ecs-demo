@@ -1,6 +1,7 @@
 #!/bin/sh
-# Runs at container startup — writes runtime config for the browser
+set -e
 
+# Write runtime backend URL config for browser
 cat > /usr/share/nginx/html/config.js << EOF
 window.ENV = {
   API_URL: "${BACKEND_URL:-http://localhost:5000}"
@@ -9,5 +10,8 @@ EOF
 
 echo "Config written: BACKEND_URL=${BACKEND_URL}"
 
+# Create nginx pid dir if missing
+mkdir -p /run/nginx
+
 # Start Nginx
-nginx -g "daemon off;"
+exec nginx -g "daemon off;"
