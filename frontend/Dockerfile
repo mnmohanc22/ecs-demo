@@ -17,8 +17,9 @@ COPY src/ ./src/
 # Build React app
 RUN npm run build
 
-# Copy built assets to Nginx html directory
-RUN cp -r /app/dist/* /usr/share/nginx/html/
+# Create nginx html dir and copy built assets
+RUN mkdir -p /usr/share/nginx/html && \
+    cp -r /app/dist/. /usr/share/nginx/html/
 
 # Generate self-signed SSL certificate
 RUN mkdir -p /etc/nginx/ssl && \
