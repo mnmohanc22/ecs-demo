@@ -1,0 +1,29 @@
+version: "3.9"
+
+# Development override - hot reload for both services
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+
+  backend:
+    build:
+      context: ./backend
+    volumes:
+      - ./backend:/app      # Hot reload Flask changes
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    command: python app.py  # Use Flask dev server instead of gunicorn
+
+  frontend:
+    build:
+      context: ./frontend
+      target: builder       # Stop at builder stage (skip nginx)
+    volumes:
+      - ./frontend:/app     # Hot reload React changes
+      - /app/node_modules   # Preserve container node_modules
+    ports:
+      - "3000:3000"         # Vite dev server
+    command: npm run dev -- --host 0.0.0.0
+    environment:
+      - VITE_API_URL=http://localhost:5000
