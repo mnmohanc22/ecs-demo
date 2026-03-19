@@ -4,7 +4,8 @@ set -e
 # Write runtime backend URL config for browser
 cat > /usr/share/nginx/html/config.js << EOF
 window.ENV = {
-  API_URL: "${BACKEND_URL:-http://localhost:5000}"
+  API_URL: "${BACKEND_URL:-http://localhost:5000}",
+  LOG_LEVEL: "${LOG_LEVEL:-INFO}"
 };
 EOF
 

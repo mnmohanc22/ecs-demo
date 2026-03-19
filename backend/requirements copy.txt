@@ -1,0 +1,16 @@
+# ── Web Framework ─────────────────────────────────────
+flask==3.0.0
+flask-cors==4.0.0
+
+# ── WSGI Server (production) ──────────────────────────
+gunicorn==21.2.0
+
+# ── Environment Variables ─────────────────────────────
+python-dotenv==1.0.0
+
+# ── PostgreSQL (RDS) ──────────────────────────────────
+psycopg2-binary==2.9.9
+
+# ── AWS SDK (Secrets Manager + S3) ────────────────────
+boto3==1.34.0
+botocore==1.34.0
