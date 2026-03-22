@@ -1,0 +1,39 @@
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+dist/
+build/
+
+# ── Environment files (never commit real secrets) ─────────────
+.env
+!.env.example
+
+# ── Node / Frontend ───────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/build/
+*.log
+npm-debug.log*
+
+# ── Docker ────────────────────────────────────────────────────
+*.tar
+
+# ── OS / Editor ───────────────────────────────────────────────
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── AWS / Terraform ───────────────────────────────────────────
+*.tfstate
+*.tfstate.backup
+.terraform/
+terraform.tfvars

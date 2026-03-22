@@ -8,7 +8,15 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: flask-backend
+    # Non-sensitive DB properties loaded from .env file.
+    # DB_PASSWORD is intentionally absent here — the app fetches it
+    # from AWS Secrets Manager at startup using SECRET_NAME.
+    # For local dev without Secrets Manager, set DB_PASSWORD here or
+    # in backend/.env and leave SECRET_NAME unset.
+    env_file:
+      - ./backend/.env
     environment:
+      # These override any matching keys in the .env file.
       - FLASK_ENV=production
       - PORT=5000
     ports:
@@ -29,8 +37,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: react-frontend
+    environment:
+      - BACKEND_URL=http://backend:5000
     ports:
-      - "80:80"           # Main app entrypoint
+      - "80:80"           # HTTP → redirects to HTTPS
+      - "443:443"         # HTTPS (self-signed cert)
     depends_on:
       backend:
         condition: service_healthy

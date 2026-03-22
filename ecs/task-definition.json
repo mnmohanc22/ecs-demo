@@ -1,0 +1,112 @@
+{
+  "family": "ecs-demo",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecs-demo-execution-role",
+  "taskRoleArn":      "arn:aws:iam::ACCOUNT_ID:role/ecs-demo-task-role",
+
+  "containerDefinitions": [
+
+    {
+      "name": "backend",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ecs-demo-backend:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 5000,
+          "protocol": "tcp"
+        }
+      ],
+
+      "environment": [
+        { "name": "FLASK_ENV",   "value": "production" },
+        { "name": "PORT",        "value": "5000"        },
+        { "name": "LOG_LEVEL",   "value": "INFO"        },
+        { "name": "LOG_FORMAT",  "value": "json"        },
+        { "name": "AWS_REGION",  "value": "us-east-1"   },
+        { "name": "DB_PORT",     "value": "5432"        },
+        { "name": "DB_SSLMODE",  "value": "require"     },
+        { "name": "DB_HOST",     "value": "your-rds.cluster-xxxx.us-east-1.rds.amazonaws.com" },
+        { "name": "DB_USER",     "value": "appuser"     },
+        { "name": "DB_NAME",     "value": "appdb"       },
+        { "name": "SECRET_NAME", "value": "prod/ecs-demo/db-credentials" }
+      ],
+
+      "secrets": [
+        {
+          "name":      "DB_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:prod/ecs-demo/db-credentials:password::"
+        }
+      ],
+
+      "environmentFiles": [
+        {
+          "value": "arn:aws:s3:::your-config-bucket/ecs-demo/backend.env",
+          "type":  "s3"
+        }
+      ],
+
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group":         "/ecs/ecs-demo/backend",
+          "awslogs-region":        "us-east-1",
+          "awslogs-stream-prefix": "backend",
+          "awslogs-create-group":  "true"
+        }
+      },
+
+      "healthCheck": {
+        "command":     ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')\" || exit 1"],
+        "interval":    30,
+        "timeout":     10,
+        "retries":     3,
+        "startPeriod": 60
+      },
+
+      "readonlyRootFilesystem": false,
+      "ulimits": [
+        { "name": "nofile", "softLimit": 65536, "hardLimit": 65536 }
+      ]
+    },
+
+    {
+      "name": "frontend",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ecs-demo-frontend:latest",
+      "essential": true,
+      "portMappings": [
+        { "containerPort": 80,  "protocol": "tcp" },
+        { "containerPort": 443, "protocol": "tcp" }
+      ],
+
+      "environment": [
+        { "name": "BACKEND_URL", "value": "http://localhost:5000" },
+        { "name": "LOG_LEVEL",   "value": "INFO" }
+      ],
+
+      "dependsOn": [
+        { "containerName": "backend", "condition": "HEALTHY" }
+      ],
+
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group":         "/ecs/ecs-demo/frontend",
+          "awslogs-region":        "us-east-1",
+          "awslogs-stream-prefix": "frontend",
+          "awslogs-create-group":  "true"
+        }
+      },
+
+      "healthCheck": {
+        "command":     ["CMD-SHELL", "wget -qO- http://localhost/health || exit 1"],
+        "interval":    30,
+        "timeout":     10,
+        "retries":     3,
+        "startPeriod": 30
+      }
+    }
+  ]
+}
